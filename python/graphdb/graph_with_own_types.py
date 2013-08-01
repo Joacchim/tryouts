@@ -30,6 +30,70 @@ class ConfigVariable(Node):
     name = String(nullable=False)
 
 
+class ConstraintType(Property):
+
+    __type_val__ = 0
+
+    def type_val(self):
+	return self.__type_val__
+
+    def toString(self):
+	raise NotImplementedError
+
+    def gt(self, lhs, rhs):
+	raise NotImplementedError
+    def gte(self, lhs, rhs):
+	raise NotImplementedError
+    def eq(self, lhs, rhs):
+	raise NotImplementedError
+    def lte(self, lhs, rhs):
+	raise NotImplementedError
+    def lt(self, lhs, rhs):
+	raise NotImplementedError
+
+class CmpOp(Object):
+
+    def __init__(self, op='=='):
+	self.op = op
+
+    def check(self, value):
+	if (    op != '>'
+	    and op != '>='
+	    and op != '=='
+	    and op != '<='
+	    and op != '<'):
+	    raise TypeError
+
+    def getOp(self):
+	return self.op
+
+    def cmp(self, lhs, rhs):
+	if self.symbol == '>':
+	    return lhs.gt(rhs)
+	elif self.symbol == '>=':
+	    return lhs.gte(rhs)
+	elif self.symbol == '=':
+	    return lhs.eq(rhs)
+	elif self.symbol == '<=':
+	    return lhs.lte(rhs)
+	elif self.symbol == '<':
+	    return lhs.lt(rhs)
+	raise NotImplementedError
+
+class Comparator(Property):
+    #: Python type
+    python_type = CmpOp
+
+    def validate(self, key, value):
+	super.validate(key, value)
+	value.check()
+
+    def to_db(self,type_system,value):
+        return type_system.database.to_string(value.getOp())
+
+    def to_python(self,type_system,value):
+        return type_system.python.to_string(value.getOp())
+    
 
 class Describes(Relationship):   # Interface -> Template, ConfigVariable
     label = "describes"
@@ -44,6 +108,7 @@ class Selects(Relationship):	 # TemplateImplem (value)-> ConfigVariable
     label = "selects"
     value_type = Integer(nullable=False)
     value = String(nullable=False)
+    constraint = Comparator(nullable=False)
 
 
 
@@ -198,70 +263,70 @@ if __name__ == "__main__":
         REQUIRED: 1
         OPTIONAL: 2
     """
-    generate_dataset(g,
-                     "Builtin",
-                     { "Builtin::String": { "qual": 0 },
-                       "Builtin::Number": { "qual": 0 },
-                       "Builtin::Serial": { "qual": 0 },
-                       "Builtin::Buffer": { "qual": 0 }
-                     },
-		     {},
-                     [ ]
-                    )
+#   generate_dataset(g,
+#                    "Builtin",
+#                    { "Builtin::String": { "qual": 0 },
+#                      "Builtin::Number": { "qual": 0 },
+#                      "Builtin::Serial": { "qual": 0 },
+#                      "Builtin::Buffer": { "qual": 0 }
+#                    },
+#       	     {},
+#                    [ ]
+#                   )
 
 
-    generate_dataset(g,
-                     "LKM",
-                     OrderedDict( [
-			("LKM::Context", {
-                                  "qual" : 0
-                                }),
-			("LKM::RegisterValue", {
-                                  "qual" : 0
-                                }),
-			("LKM::Register", {
-                                  "qual" : 0,
-                                  "deps" : ["LKM::RegisterValue"]
-                                }),
-			("LKM::Init()", {
-                                  "qual" : 0
-                                }),
-			("LKM::Open(LKM::Context)", {
-                                  "qual" : 1,
-                                  "deps" : ["LKM::Context"]
-                                }),
-			("LKM::Read(LKM::Context, Builtin::Buffer)", {
-                                  "qual" : 2,
-                                  "deps" : ["LKM::Context", "Builtin::Buffer"]
-                                }),
-			("LKM::Write(LKM::Context, Builtin::Buffer)", {
-                                  "qual" : 2,
-                                  "deps" : ["LKM::Context", "Builtin::Buffer"]
-                                }),
-			("LKM::Close(LKM::Context)", {
-                                  "qual" : 1,
-                                  "deps" : ["LKM::Context"]
-                                }),
-			("LKM::Fini(LKM::Context)", {
-                                  "qual" : 1,
-                                  "deps" : ["LKM::Context"]
-                                })
-                     ]),
-		     {
-			"Builtin::String" : [ "LKM::os" ],
-			"Builtin::Number" : [ "LKM::version" ],
+#   generate_dataset(g,
+#                    "LKM",
+#                    OrderedDict( [
+#       		("LKM::Context", {
+#                                 "qual" : 0
+#                               }),
+#       		("LKM::RegisterValue", {
+#                                 "qual" : 0
+#                               }),
+#       		("LKM::Register", {
+#                                 "qual" : 0,
+#                                 "deps" : ["LKM::RegisterValue"]
+#                               }),
+#       		("LKM::Init()", {
+#                                 "qual" : 0
+#                               }),
+#       		("LKM::Open(LKM::Context)", {
+#                                 "qual" : 1,
+#                                 "deps" : ["LKM::Context"]
+#                               }),
+#       		("LKM::Read(LKM::Context, Builtin::Buffer)", {
+#                                 "qual" : 2,
+#                                 "deps" : ["LKM::Context", "Builtin::Buffer"]
+#                               }),
+#       		("LKM::Write(LKM::Context, Builtin::Buffer)", {
+#                                 "qual" : 2,
+#                                 "deps" : ["LKM::Context", "Builtin::Buffer"]
+#                               }),
+#       		("LKM::Close(LKM::Context)", {
+#                                 "qual" : 1,
+#                                 "deps" : ["LKM::Context"]
+#                               }),
+#       		("LKM::Fini(LKM::Context)", {
+#                                 "qual" : 1,
+#                                 "deps" : ["LKM::Context"]
+#                               })
+#                    ]),
+#       	     {
+#       		"Builtin::String" : [ "LKM::os" ],
+#       		"Builtin::Number" : [ "LKM::version" ],
 
-		     },
-                     [
-                        {
-			  "LKM::os":	    "Linux",
-                          "LKM::version":   "3"
-                        },
-			{
-			 "LKM::os":	  "Windows",
-                         "LKM::version":  "7"
-			}
-                     ])
+#       	     },
+#                    [
+#                       {
+#       		  "LKM::os":	    "Linux",
+#                         "LKM::version":   "3"
+#                       },
+#       		{
+#       		 "LKM::os":	  "Windows",
+#                        "LKM::version":  "7"
+#       		}
+#                    ])
 
     """
     itf = g.interfaces.create("Bus")
