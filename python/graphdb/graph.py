@@ -5,6 +5,7 @@ from bulbs.model import Node, Relationship
 from bulbs.property import Property, Document, Dictionary, String, Integer, DateTime
 from bulbs.utils import current_date
 from bulbs.neo4jserver import Graph
+import string
 
 class Interface(Node):
     element_type = "interface"
@@ -113,19 +114,26 @@ def generate_dataset(g, itfSign, templates, variables, configs):
         count = 0
         for config in configs:
 	    
-	    """
-	    print "Trying gremlin..."
+	
+	    print ">>>> Trying gremlin..."
 	    try:
-		result = g.gremlin("g.v(%i).out('implements').as('impl')
-				   .outE('selects').as('val')
-				   .out('selects').as('var')
-				   .filter{ val.value == '%s' }".format(tpl.eid))
+		request = "g.v({}).out('implements').as('impl')".format(tpl.eid)
+		print "Base request is '%s'" % (request)
+		f = string.Template(".outE('selects').filter{it.value=='$val'}"+
+				    ".inV().filter{it.name=='$var'}"+
+				    ".back('impl')")
+		for varName in config:
+		    request += f.substitute(var=varName, val=config[varName])
+		print "Base request is '%s'" % (request)
+		result = g.gremlin.query(request)
 		if result != None:
-		    print "Gremlin found a matching template: %s" % (result)
-	    except:
-		print "Gremlin script error"
-	    print "gremlin done..."
-	    """
+		    print ">>>> Gremlin found a matching template: %s" % (result)
+		    for t in result:
+			print t
+	    except Exception as inst:
+		for d in inst[0]:
+		    print "d: %s" % (str(d))
+	    print ">>>> gremlin done..."
 	    
 	    impl = None
 	    if origin != None:
