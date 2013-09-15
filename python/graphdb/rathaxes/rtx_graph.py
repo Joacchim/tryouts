@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
-from bulbs.model import Node, Relationship
-from bulbs.property import Property, Document, Dictionary, String, Integer, DateTime
+from bulbs.model    import  Node, Relationship
+from bulbs.property import  Property, Document, Dictionary,\
+                            String, Integer, DateTime
 
 
 ##
@@ -40,15 +41,18 @@ class RtxGraphVariable(Node):
 ##
 class RtxGraphConstraint(String):
     def _check_datatype(self, key, value):
-        if value is not None and isinstance(value, String.python_type) is False:
-            log.error("Type Error: '%s' is set to %s with type %s, but must be a %s.", 
-                      key, value, type(value), self.python_type)
+        if value is not None\
+            and isinstance(value, String.python_type) is False:
+            log.error("Type Error: '%s' is set to %s with type %s,"+\
+                      " but must be a %s.", key, value, type(value),\
+                      self.python_type)
             raise TypeError
 
         if  value != ">"  and value != ">=" and \
             value != "==" and \
             value != "<=" and value != "<":
-            log.error("Type Error: '%s' is set to %s with type %s, but is not a comparison operator.", 
+            log.error("Type Error: '%s' is set to %s with type %s,i"+\
+                      " but is not a comparison operator.",\
                       key, value, type(value), self.python_type)
             raise TypeError
 
@@ -57,24 +61,30 @@ class RtxGraphConstraint(String):
 ##
 ## Available relationsships
 ##
-class RtxGraphDescribes(Relationship):  # RtxGraphInterface -> RtxGraph{Template,Variable,Pointcut}
+# RtxGraphInterface -> RtxGraph{Template,Variable,Pointcut}
+class RtxGraphDescribes(Relationship):
     label = "describes"
 
-class RtxGraphDependsOn(Relationship):  # RtxGraphTemplate -> RtxGraphTemplate
+# RtxGraphTemplate -> RtxGraphTemplate
+class RtxGraphDependsOn(Relationship):
     label = "depends_on"
 
-class RtxGraphImplements(Relationship): # RtxGraphTemplate -> RtxGraphImplem
+# RtxGraphTemplate -> RtxGraphImplem
+class RtxGraphImplements(Relationship):
     label = "implements"
 
-class RtxGraphSelects(Relationship):    # RtxGraphImplem -(value)-> RtxGraphVariable
+# RtxGraphImplem -(value)-> RtxGraphVariable
+class RtxGraphSelects(Relationship):
     label = "selects"
     value = String(nullable=False)
     constraint = RtxGraphConstraint(nullable=False)
 
-class RtxGraphProvides(Relationship):   # RtxGraphTemplate -> RtxGraphChunk
+# RtxGraphTemplate -> RtxGraphChuk
+class RtxGraphProvides(Relationship):
     label = "provides"
 
-class RtxGraphWeaveIn(Relationship):    # RtxGraphChunk -> RtxGraphPointcut
+# RtxGraphChunk -> RtxGraphPointcut
+class RtxGraphWeaveIn(Relationship):
     label = "weave_in"
 
 

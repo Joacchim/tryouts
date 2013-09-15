@@ -11,11 +11,14 @@ def identity_match(g, signature, config):
     result = None
 
     request = "excepted_impls = new Table()\n"
-    # Make sure that only the matching variables are present in the ref's constraints
+    # Make sure that only the matching variables are present
+    # in the ref's constraints
     n_constraints = len(config.constraints())
     if n_constraints > 0:
-        request += "g.V().filter{" + "it.element_type=='template' && it.signature=='{}'".format(signature) + "}.as('tpl')"
-        request += ".out('implements').as('impl').out('selects').filter{ var ->"
+        request += "g.V().filter{it.element_type=='template' && "+\
+                   "it.signature=='{}'".format(signature) + "}.as('tpl')"+\
+                   ".out('implements').as('impl').out('selects')"+\
+                   ".filter{ var ->"
         i = 0
         for name, value, op in config.constraints():
             if i != 0:
@@ -41,7 +44,8 @@ def identity_match(g, signature, config):
         request += ".fill(excepted_impls)\n"
         
     # Now, find matching decls, excluding the previous selection
-    request += "g.V().filter{" + "it.element_type=='template' && it.signature=='{}'".format(signature) + "}.as('tpl')"
+    request += "g.V().filter{" + "it.element_type=='template' && "+\
+               "it.signature=='{}'".format(signature) + "}.as('tpl')"
     request += ".out('implements').as('impl')"
     if dbg:
         try:
@@ -57,13 +61,14 @@ def identity_match(g, signature, config):
             print "[ERROR]: " + dic["message"]
             print ""
     request += ".except(excepted_impls)"
-    f = string.Template(".outE('selects').filter{it.value=='$val' && it.constraint=='$op'}"+
-                ".inV().filter{it.signature=='$var'}"+
-                ".back('impl')")
+    f = string.Template(".outE('selects').filter{it.value=='$val' &&"+\
+                        " it.constraint=='$op'}.inV().filter{"+\
+                        "it.signature=='$var'}.back('impl')")
     for name, value, op in config.constraints():
         request += f.substitute(var=name, val=value, op=op)
         if dbg:
-            print "Filtering on: '%s'" % (f.substitute(var=name, val=value, op=op))
+            print "Filtering on: '%s'" %\
+                (f.substitute(var=name, val=value, op=op))
             try:
                 result = g.gremlin.query(request)
                 if result:
