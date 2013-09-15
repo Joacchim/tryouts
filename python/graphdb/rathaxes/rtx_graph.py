@@ -40,7 +40,11 @@ class RtxGraphVariable(Node):
 ##
 class RtxGraphConstraint(String):
     def _check_datatype(self, key, value):
-        super._check_datatype(key, value)
+        if value is not None and isinstance(value, String.python_type) is False:
+            log.error("Type Error: '%s' is set to %s with type %s, but must be a %s.", 
+                      key, value, type(value), self.python_type)
+            raise TypeError
+
         if  value != ">"  and value != ">=" and \
             value != "==" and \
             value != "<=" and value != "<":

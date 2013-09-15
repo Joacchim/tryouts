@@ -55,12 +55,19 @@ class RtxTemplate:
         self._signature = signature
         self._deps = []
         self._impls = []
+        self._chunks = []
 
     def addImplementation(self, impl):
         self._impls.append(impl) 
 
     def addDependency(self, dependency):
         self._deps.append(dependency)
+
+    def addChunk(self, chunkSign):
+        self._chunks.append(chunkSign)
+
+    def chunks(self):
+        return self._chunks
 
     def signature(self):
         return self._signature
@@ -79,16 +86,12 @@ class RtxImplem:
         self._id = impl_id
         impl_id += 1
         self._config = []
-        self._chunks = []
 
     def addConstraint(self, signature, op, value):
         self._config.append( (signature, value, op) )
 
-    def addChunk(self, chunkSign):
-        self._chunks.append(chunkSign)
-
     def constraints(self):
         return self._config
 
-    def chunks(self):
-        return self._chunks
+    def id(self):
+        return self._id
