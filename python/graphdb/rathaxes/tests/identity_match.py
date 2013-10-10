@@ -241,14 +241,14 @@ def test():
 
     #empty config
     impl = RtxImplem()
-    if Algos.identity_match("LKM::Context", impl) is None:
+    if Algos.identity_match(g, "LKM::Context", impl) is None:
         print "[1] Found multiple matches for an identity match."
         return False
 
     # config with only one variable
     impl = RtxImplem()
     impl.addConstraint("LKM::os",       "==",   "Linux")
-    if Algos.identity_match("LKM::Context", impl) is None:
+    if Algos.identity_match(g, "LKM::Context", impl) is None:
         print "[2] Found multiple matches for an identity match."
         return False
 
@@ -256,7 +256,7 @@ def test():
     impl = RtxImplem()
     impl.addConstraint("LKM::os",       "==",   "Windows")
     impl.addConstraint("LKM::version",  ">=",   "7")
-    if Algos.identity_match("LKM::Context", impl) is None:
+    if Algos.identity_match(g, "LKM::Context", impl) is None:
         print "[3] Found multiple matches for an identity match."
         return False
 
@@ -267,7 +267,7 @@ def test():
     impl.addConstraint("LKM::os",       "==",   "FreeBSD")
     impl.addConstraint("LKM::version",  ">=",    "4")
     impl.addConstraint("LKM::version",  "<=",    "7")
-    if Algos.identity_match("LKM::Write(LKM::Context, Builtin::Buffer)",
+    if Algos.identity_match(g, "LKM::Write(LKM::Context, Builtin::Buffer)",
                             impl) is None:
         print "[4] Found multiple matches for an identity match."
         return False
@@ -275,9 +275,9 @@ def test():
     # Then on a tpl with multiple configs
     impl = RtxImplem()
     impl.addConstraint("LKM::os",       "==",   "Windows")
-    impl.addConstraint("LKM::version",  ">=",   "7")
-    impl.addConstraint("LKM::version",  "<=",    "4")
-    if Algos.identity_match("LKM::Context", impl) is None:
+    impl.addConstraint("LKM::version",  "<=",   "7")
+    impl.addConstraint("LKM::version",  ">=",    "4")
+    if Algos.identity_match(g, "LKM::Context", impl) is None:
         print "[5] Found multiple matches for an identity match."
         return False
 
