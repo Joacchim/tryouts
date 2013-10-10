@@ -85,10 +85,12 @@ class RtxImplem:
         global impl_id
         self._id = impl_id
         impl_id += 1
-        self._config = []
+        self._config = {}
 
     def addConstraint(self, signature, op, value):
-        self._config.append( (signature, value, op) )
+        if not self._config.has_key(signature):
+            self._config[signature] = []
+        self._config[signature].append( (value, op) )
 
     def constraints(self):
         return self._config

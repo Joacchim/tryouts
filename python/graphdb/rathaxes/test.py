@@ -6,3 +6,6 @@ if __name__ == "__main__":
     print "Testing graph building..."
     build_graph.test()
 
+    #print "Testing identity_match..."
+    #identity_match.test()
+

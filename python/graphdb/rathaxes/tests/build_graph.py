@@ -38,14 +38,55 @@ def input_data(g):
 
 
     itf = RtxInterface("LKM")
+
     itf.addDependency("Builtin")
+
+    itf.addVariable(RtxVariable("LKM::os"))
+    itf.addVariable(RtxVariable("LKM::version"))
+    itf.addVariable(RtxVariable("LKM::serial"))
+    
+    itf.addPointcut(RtxPointcut("LKM::data_types()"))
+    itf.addPointcut(RtxPointcut("LKM::prototypes()"))
+    itf.addPointcut(RtxPointcut("LKM::code()"))
+
 
     tpl = RtxTemplate("LKM::Context")
     tpl.addChunk("LKM::data_types()")
+
+    impl = RtxImplem()
+    tpl.addImplementation(impl)
+
     impl = RtxImplem()
     impl.addConstraint("LKM::os",       "==",   "Windows")
     impl.addConstraint("LKM::version",  ">=",    "7")
     tpl.addImplementation(impl)
+    
+    impl = RtxImplem()
+    impl.addConstraint("LKM::os",       "==",   "Windows")
+    impl.addConstraint("LKM::version",  "<=",    "7")
+    tpl.addImplementation(impl)
+    
+    impl = RtxImplem()
+    impl.addConstraint("LKM::os",       "==",   "Windows")
+    impl.addConstraint("LKM::version",  "<=",    "7")
+    impl.addConstraint("LKM::version",  ">=",    "4")
+    tpl.addImplementation(impl)
+    
+    impl = RtxImplem()
+    impl.addConstraint("LKM::os",       "==",   "Windows")
+    impl.addConstraint("LKM::version",  "<=",    "7")
+    impl.addConstraint("LKM::version",  ">=",    "4")
+    impl.addConstraint("LKM::serial",   "==",    "DSHG-PEDS-JFLE-PREZ")
+    tpl.addImplementation(impl)
+    
+    impl = RtxImplem()
+    impl.addConstraint("LKM::os",       "==",   "Windows")
+    tpl.addImplementation(impl)
+    
+    impl = RtxImplem()
+    impl.addConstraint("LKM::os",       "==",   "Linux")
+    tpl.addImplementation(impl)
+    
     itf.addTemplate(tpl)
 
 
@@ -187,13 +228,6 @@ def input_data(g):
 
 
     
-    itf.addVariable(RtxVariable("LKM::os"))
-    itf.addVariable(RtxVariable("LKM::version"))
-    
-    itf.addPointcut(RtxPointcut("LKM::data_types()"))
-    itf.addPointcut(RtxPointcut("LKM::prototypes()"))
-    itf.addPointcut(RtxPointcut("LKM::code()"))
-
     generator.generate_dataset(g, itf)
 
 
@@ -204,4 +238,3 @@ def test():
     rtx_graph.BuildGraphStructure(g)
 
     input_data(g)
-
