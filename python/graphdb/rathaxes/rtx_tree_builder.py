@@ -87,6 +87,9 @@ class RtxImplem:
         impl_id += 1
         self._config = {}
 
+    def addConfig(self, signature, value):
+        self.addConstraint(signature, "==", value)
+
     def addConstraint(self, signature, op, value):
         if not self._config.has_key(signature):
             self._config[signature] = []

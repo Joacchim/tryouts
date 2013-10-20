@@ -29,7 +29,7 @@ def __debug_query(g, step, query):
     print ""
 
 
-def __setup_exclude_table(table_name):
+def __setup_table(table_name):
     return table_name + " = new Table()\n"
 
 def __filter_template_impls(signature):
@@ -57,7 +57,7 @@ def __exclude_unmatched_parameters(g, signature, config, except_table):
     request += ".fill(" + except_table + ")\n"
     return request
 
-def __exclude_unmatched_values(g, signature, config, except_table):
+def __exclude_non_identity_values(g, signature, config, except_table):
     request = ""
     # Make sure that matching variables with non-matching conditions
     # are excluded from the result set
@@ -83,7 +83,7 @@ def __exclude_unmatched_values(g, signature, config, except_table):
     return request
         
 
-def __select_compatible(g, signature, config, except_table):
+def __select_identity_params(g, signature, config, except_table):
     # Now, find matching decls, excluding the previous selection
     request = __filter_template_impls(signature)
     __debug_query(g, "Selecting from full set", request)
@@ -100,16 +100,43 @@ def __select_compatible(g, signature, config, except_table):
     request += ".except("+except_table+")"
     return request
 
+def __select_compatible_params(g, signature, config, except_table):
+    request = ""
+    all_impls = __filter_template_impls(signature)
+
+    # First, exclude incompatible selections:
+    #  - Any entry that does not comply with the constraint
+    f = string.Template(".outE('selects').filter{ ! ("+\
+                        "    (it.constraint == '<'  && '$val' <  it.value) "+\
+                        " || (it.constraint == '<=' && '$val' <= it.value) "+\
+                        " || (it.constraint == '==' && '$val' == it.value) "+\
+                        " || (it.constraint == '>=' && '$val' >= it.value) "+\
+                        " || (it.constraint == '>'  && '$val' >  it.value) "+\
+                        ") }.inV().filter{it.signature=='$var'}.back('impl')")
+    for name in config.constraints():
+        for value, op in config.constraints()[name]:
+            subreq = all_impls + f.substitute(var=name, val=value)
+            __debug_query(g, "Excluding incompatible values for parameter " + name, subreq)
+            request += subreq
+            request += ".fill(" + except_table + ")\n"
+
+    __debug_query(g, "Selecting compatible from full set", all_impls)
+
+    # Now, find matching decls, excluding the previous selection
+    request += all_impls + ".except(" + except_table + ")\n"
+
+    return request
+
 
 def identity_match(g, signature, config):
     result = None
     tmp_res = None
     except_table = "excepted_impls"
 
-    request = __setup_exclude_table(except_table)
+    request = __setup_table(except_table)
     request += __exclude_unmatched_parameters(g, signature, config, except_table)
-    request += __exclude_unmatched_values(g, signature, config, except_table)
-    request += __select_compatible(g, signature, config, except_table)
+    request += __exclude_non_identity_values(g, signature, config, except_table)
+    request += __select_identity_params(g, signature, config, except_table)
 
     if dbg: print "Request is: " + request
     try:
@@ -135,3 +162,31 @@ def identity_match(g, signature, config):
         return None
 
     return reslist[0]
+
+def standard_match(g, signature, config):
+    result = None
+    except_table = "excepted_impls"
+
+    # 1) Filter out any entry that restricts over an unused variable
+    # (it should not be included by a configuration that does not specify the parameter)
+    # 2) Filter out any entry which does not comply to all the constraints
+    request = __setup_table(except_table)
+    request += __exclude_unmatched_parameters(g, signature, config, except_table)
+    request += __select_compatible_params(g, signature, config, except_table)
+
+    print "dbg is %s" % (str(dbg))
+    if dbg: print "Request is: " + request
+    try:
+        result = g.gremlin.query(request)
+    except Exception as inst:
+        dic = eval(inst[0][1])
+        print ""
+        print "[ERROR]: " + dic["message"]
+        print ""
+        raise inst
+
+    if result is None:
+        return []
+
+    reslist = [ res for res in result ]
+    return reslist
