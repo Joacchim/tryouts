@@ -163,7 +163,7 @@ def identity_match(g, signature, config):
 
     return reslist[0]
 
-def standard_match(g, signature, config):
+def standard_match(g, signature, config, inclusive=False):
     result = None
     except_table = "excepted_impls"
 
@@ -171,7 +171,8 @@ def standard_match(g, signature, config):
     # (it should not be included by a configuration that does not specify the parameter)
     # 2) Filter out any entry which does not comply to all the constraints
     request = __setup_table(except_table)
-    request += __exclude_unmatched_parameters(g, signature, config, except_table)
+    if inclusive is False:
+        request += __exclude_unmatched_parameters(g, signature, config, except_table)
     request += __select_compatible_params(g, signature, config, except_table)
 
     print "dbg is %s" % (str(dbg))
