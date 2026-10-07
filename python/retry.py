@@ -7,5 +7,5 @@ def retry(call, attempts=3, delay=1):
         try:
             return call()
         except Exception:
-            time.sleep(delay)
+            time.sleep(delay * 2)   # back off, rather than a flat wait
     raise RuntimeError("gave up")
