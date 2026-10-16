@@ -3,7 +3,6 @@
 from collections import OrderedDict
 from bulbs.model import Node, Relationship
 from bulbs.property import Property, Document, Dictionary, String, Integer, DateTime
-from bulbs.utils import current_date
 from bulbs.neo4jserver import Graph
 import string
 
